@@ -5,40 +5,8 @@
 #include <vector>
 
 #include "tokenization.hpp"
-
-std::string token_to_asm(const std::vector<Token>& tokens)
-{
-    std::stringstream outStream;
-    outStream << "global _start\n_start:\n";
-    for (int i = 0; i < tokens.size(); ++i) {
-        const Token& token = tokens[i];
-        if(token.type == TokenType::exit)
-        {
-            if(i + 1 < tokens.size() && tokens[i + 1].type == TokenType::int_lit)
-            {
-                if(i + 2 < tokens.size() && tokens[i + 2].type == TokenType::semicolon)
-                {
-                    i++;
-                    outStream << "    mov rax, 60\n";
-                    outStream << "    mov rdi, " << tokens[i].value.value() << '\n';
-                    outStream << "    syscall\n";
-                }
-            }
-        }
-    }
-    return outStream.str();
-}
-
-void Assembler_and_Linker(const std::string asm_code,const char* path)
-{
-    std::cout << asm_code << std::endl;
-    {
-        std::fstream asmFile(path,std::ios::out);
-        asmFile << asm_code;
-    }
-    system("nasm -felf64 ../test.asm");
-    system("ld -o ../out ../test.o");
-}
+#include "parser.hpp"
+#include "generation.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -49,6 +17,8 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
     std::cout << argv[1] << ' ' << argv[2] << '\n';
+
+    //File reading
     std::string soulCode;
     {
         std::stringstream contentStream;
@@ -58,8 +28,28 @@ int main(int argc, char *argv[])
         soulCode = contentStream.str();
         source_file.close();
     }
+
     Tokenizer s_tokenizer (std::move(soulCode));
     std::vector<Token> s_tokens = s_tokenizer.tokenize();
-    Assembler_and_Linker(std::move(token_to_asm(s_tokens)), argv[2]);
+
+    Parser parser(std::move(s_tokens));
+    std::optional<Node::Exit> parser_out = parser.parse();
+
+    if(!parser_out.has_value()) {
+        std::cerr << "No exit found" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    Generator generator (parser_out.value());
+
+    //NASM and Linking
+    {
+        std::fstream asmFile(argv[2],std::ios::out);
+        asmFile << "global _start\n";
+        asmFile << "_start:\n";
+        asmFile << generator.generate();
+    }
+    system("nasm -felf64 ../test.asm");
+    system("ld -o ../out ../test.o");
+
     return EXIT_SUCCESS;
 }

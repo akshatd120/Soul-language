@@ -5,25 +5,7 @@
 #ifndef SOUL_TOKENIZATION_HPP
 #define SOUL_TOKENIZATION_HPP
 #include <vector>
-
-enum class TokenType
-{
-    _variable,
-    _if,
-    exit,
-    int_lit,
-    semicolon,
-    Open_curly_brace,
-    Close_curly_brace,
-    Open_Circle_brace,
-
-};
-
-struct Token
-{
-    TokenType type;
-    std::optional<std::string> value;
-};
+#include "token.hpp"
 
 class Tokenizer{
 public:
@@ -48,7 +30,7 @@ public:
                 }
                 if(buffer == "exit")
                 {
-                    _tokens.push_back({.type = TokenType::exit});
+                    _tokens.push_back({.type = TokenType::_exit});
                 }
                 buffer.clear();
             }
