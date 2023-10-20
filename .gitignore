@@ -33,6 +33,7 @@
 *.asm
 out
 Production_rule.md
+.clang-format
 
 **/cmake-build-debug
 **/CMakeCache.txt
@@ -44,6 +45,7 @@ Production_rule.md
 **/*.cbp
 **/CMakeScriptssl
 **/compile_commands.json
+
 
  
 include/divisible/*
@@ -62,3 +64,5 @@ include/*
 lib/*
 bin/*
 test/test_runner
+
+
