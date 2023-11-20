@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     std::vector<Token> s_tokens = s_tokenizer.tokenize();
 
     Parser parser(std::move(s_tokens));
-    std::optional<Node::Exit> parser_out = parser.parse();
+    std::optional<Node::Program> parser_out = parser.parse_program();
 
     if(!parser_out.has_value()) {
         std::cerr << "No exit found" << std::endl;
@@ -44,9 +44,7 @@ int main(int argc, char *argv[])
     //NASM and Linking
     {
         std::fstream asmFile(argv[2],std::ios::out);
-        asmFile << "global _start\n";
-        asmFile << "_start:\n";
-        asmFile << generator.generate();
+        asmFile << generator.generate_program();
     }
     system("nasm -felf64 ../test.asm");
     system("ld -o ../out ../test.o");

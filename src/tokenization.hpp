@@ -30,7 +30,15 @@ public:
                 }
                 if(buffer == "exit")
                 {
-                    _tokens.push_back({.type = TokenType::_exit});
+                    _tokens.emplace_back(TokenType::exit);
+                }
+                else if(buffer == "var")
+                {
+                    _tokens.emplace_back(TokenType::var);
+                }
+                else
+                {
+                    _tokens.emplace_back(TokenType::ident,buffer);
                 }
                 buffer.clear();
             }
@@ -41,18 +49,52 @@ public:
                 {
                     buffer.push_back(consume());
                 }
-                _tokens.push_back({.type = TokenType::int_lit, .value = buffer});
+                _tokens.emplace_back(TokenType::int_lit,buffer);
                 buffer.clear();
+            }
+            else if(peek().value() == '(')
+            {
+                _tokens.emplace_back(TokenType::open_paren);
+                consume();
+            }
+            else if(peek().value() == '=')
+            {
+                _tokens.emplace_back(TokenType::equalSign);
+                consume();
+            }
+            else if (peek().value() == ')')
+            {
+                _tokens.emplace_back(TokenType::close_paren);
+                consume();
             }
             else if(peek().value() == ';')
             {
-                _tokens.push_back({.type = TokenType::semicolon});
+                _tokens.emplace_back(TokenType::semicolon);
                 consume();
             }
-            else if (std::isspace(peek().value())){
+            else if(peek().value() == '/')
+            {
+                consume();
+                if(peek().has_value() && peek().value() == '/')
+                {
+                    consume();
+                    while(peek().has_value() && peek().value() != '\n')
+                    {
+                        consume();
+                    }
+                }
+                else
+                {
+                    std::cerr << "Invalid comment start!" << std::endl;
+                    exit(EXIT_FAILURE);
+                }
+            }
+            else if (std::isspace(peek().value()))
+            {
                 consume();
             }
-            else {
+            else
+            {
                 std::cerr << "Invalid syntax! :(" << std::endl;
                 exit(EXIT_SUCCESS);
             }
@@ -60,11 +102,11 @@ public:
         return _tokens;
     }
 private:
-    [[nodiscard]]inline std::optional<char> peek(int ahead = 1) const {
-        if (m_index + ahead > m_src.length()) {
+    [[nodiscard]]inline std::optional<char> peek(int ahead = 0) const {
+        if (m_index + ahead >= m_src.length()) {
             return {};
         } else {
-            return m_src[m_index];
+            return m_src[m_index + ahead];
         }
     }
     inline char consume()

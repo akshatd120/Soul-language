@@ -5,22 +5,21 @@
 #ifndef SOUL_TOKEN_HPP
 #define SOUL_TOKEN_HPP
 #include "optional"
-
 enum class TokenType
 {
     var,
-    _if,
-    _exit,
+    exit,
     int_lit,
-    semicolon,
-    Open_curly_brace,
-    Close_curly_brace,
-    Open_Circle_brace,
+    ident,
+    equalSign,
+    open_paren,
+    close_paren,
+    semicolon
 };
 
 struct Token
 {
     TokenType type;
-    std::optional<std::string> value;
+    std::optional<std::string> val;
 };
 #endif//SOUL_TOKEN_HPP
