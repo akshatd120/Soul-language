@@ -7,5 +7,4 @@ COMMENTS
 */
 
 println("Hello World!");
-println("Ashish is a topper");
 exit (27);
