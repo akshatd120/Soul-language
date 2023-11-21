@@ -1,2 +1,8 @@
 //This is a comment :D
-exit (13);
+
+/*THIS IS A MU
+            LT
+            I
+            LINE
+            COMMENT*/
+exit (23);

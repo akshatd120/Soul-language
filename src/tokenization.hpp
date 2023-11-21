@@ -75,6 +75,7 @@ public:
             else if(peek().value() == '/')
             {
                 consume();
+                //Check: For single line comment
                 if(peek().has_value() && peek().value() == '/')
                 {
                     consume();
@@ -82,10 +83,25 @@ public:
                     {
                         consume();
                     }
+                    //consume the newline character
+                }
+                else if(peek().has_value() && peek().value() == '*')
+                {
+                    consume();
+                    while (peek().has_value())
+                    {
+                        if(peek().value() != '*' && peek(1).has_value() && peek(1).value() == '/')
+                        {
+                            consume();
+                            consume();
+                            break;
+                        }
+                        consume();
+                    }
                 }
                 else
                 {
-                    std::cerr << "Invalid comment start!" << std::endl;
+                    std::cerr << "Invalid syntax!" << std::endl;
                     exit(EXIT_FAILURE);
                 }
             }
@@ -95,7 +111,7 @@ public:
             }
             else
             {
-                std::cerr << "Invalid syntax! :(" << std::endl;
+                std::cerr << "Invalid syntax!" << std::endl;
                 exit(EXIT_SUCCESS);
             }
         }
