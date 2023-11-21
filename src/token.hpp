@@ -7,10 +7,19 @@
 #include "optional"
 enum class TokenType
 {
+    //Keywords
     var,
     exit,
+    println,
+
+    //Lits & Idents
+    str_lit,
     int_lit,
     ident,
+
+    //Symbols
+    s_doubleQuote,
+    e_doubleQuote,
     equalSign,
     open_paren,
     close_paren,

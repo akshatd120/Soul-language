@@ -10,18 +10,23 @@
 #include "tokenization.hpp"
 
 namespace Node{
+    //Expressions
+
     struct ExprIntLit{
         Token int_lit;
+    };
+    struct ExprStrLit
+    {
+        Token str_lit;
     };
     struct ExprIdent{
         Token ident;
     };
     struct Expr{
-        std::variant<ExprIntLit , ExprIdent> e_var;
+        std::variant<ExprIntLit , ExprStrLit ,ExprIdent> e_var;
     };
-    struct Exit{
-      Expr expr;
-    };
+
+    //Stmts
     struct StmtExit{
         Expr expr;
     };
@@ -29,9 +34,14 @@ namespace Node{
         Token ident;
         Expr expr;
     };
-    struct Stmt{
-        std::variant <StmtExit, StmtVar> s_var;
+    struct StmtPrint{
+        Expr expr;
     };
+    struct Stmt{
+        std::variant <StmtExit, StmtVar, StmtPrint> s_var;
+    };
+
+    //Program
     struct Program{
         std::vector<Stmt> stmts;
     };
@@ -53,6 +63,10 @@ public:
             {
                 return Node::Expr{ .e_var = Node::ExprIntLit{.int_lit = consume()} };
             }
+            else if(peek().value().type == TokenType::str_lit)
+            {
+                return Node::Expr{.e_var = Node::ExprStrLit{.str_lit = consume()}};
+            }
             else if(peek().value().type == TokenType::ident)
             {
                 return Node::Expr{.e_var = Node::ExprIdent{.ident = consume()}};
@@ -67,46 +81,36 @@ public:
             //consume exit
             consume();
             if(peek().has_value() && peek().value().type == TokenType::open_paren)
-            {
                 consume();
-            }
             else
             {
                 std::cerr << "Expected `(`" << std::endl;
                 exit(EXIT_FAILURE);
             }
+
             //Parse the Expr with int lit
             Node::StmtExit stmt_exit;
             if(auto node_expr = parse_expr())
-            {
                 stmt_exit = {.expr = node_expr.value()};
-            }
             else
             {
-                std::cerr << "Invalid Expression..." << std::endl;
+                std::cerr << "Invalid Exit expression!" << std::endl;
                 exit(EXIT_FAILURE);
             }
             if(peek().has_value() && peek().value().type == TokenType::close_paren)
-            {
                 consume();
-            }
             else
             {
                 std::cerr << "Expected `)`" << std::endl;
                 exit(EXIT_FAILURE);
             }
-            if(peek().has_value() && peek().value().type == TokenType::semicolon) //IF it is a semicolon
-            {
-                //consume semicolon
+            if(peek().has_value() && peek().value().type == TokenType::semicolon)
                 consume();
-            }
-            else //NO Semicolon found
+            else //No Semicolon found
             {
                 std::cerr << "Expected `;`" << std::endl;
                 exit(EXIT_FAILURE);
             }
-
-
             return Node::Stmt{.s_var = stmt_exit};
         }
         else if(peek().has_value() && peek().value().type == TokenType::var
@@ -147,6 +151,64 @@ public:
 
             return Node::Stmt{.s_var = stmt_var};
         }
+        else if(peek().has_value() && peek().value().type == TokenType::println)
+        {
+            consume();
+
+            if(peek().has_value() && peek().value().type == TokenType::open_paren)
+            {
+                consume();
+            }
+            else {
+                std::cerr << "Expected `(`" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+
+            if(peek().has_value() && peek().value().type == TokenType::s_doubleQuote)
+            {
+                consume();
+            }
+            else
+            {
+                std::cerr << "Expected `\"`" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+
+            Node::StmtPrint stmt_print;
+            if(auto node_expr = parse_expr())
+                stmt_print = {.expr = node_expr.value()};
+            else
+            {
+                std::cerr << "Invalid print expression!" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+
+            if(peek().has_value() && peek().value().type == TokenType::e_doubleQuote)
+                consume();
+            else
+            {
+                std::cerr << "Expected `\"` at end of string!" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+
+            if(peek().has_value() && peek().value().type == TokenType::close_paren)
+                consume();
+            else
+            {
+                std::cerr << "Expected `)`" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+
+            if(peek().has_value() && peek().value().type == TokenType::semicolon)
+                consume();
+            else //No Semicolon found
+            {
+                std::cerr << "Expected `;`" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+
+            return Node::Stmt{.s_var = stmt_print};
+        }
         else
             return {}; // Return nothing, coz parsing failed/ found ntg
     }
@@ -169,6 +231,7 @@ public:
     }
 
 private:
+
     [[nodiscard]]inline std::optional<Token> peek(int ahead = 0) const {
         if (m_index + ahead >= m_tokens.size()) {
         return {};
@@ -180,6 +243,7 @@ private:
     {
         return m_tokens[m_index++];
     }
+
     std::vector<Token> m_tokens;
     size_t m_index = 0;
 };

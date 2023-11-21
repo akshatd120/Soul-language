@@ -1,8 +1,11 @@
 //This is a comment :D
 
-/*THIS IS A MU
-            LT
-            I
-            LINE
-            COMMENT*/
-exit (23);
+/*
+HELLO
+MULTILINE
+COMMENTS
+*/
+
+println("Hello World!");
+println("Ashish is a topper");
+exit (27);

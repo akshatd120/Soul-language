@@ -21,7 +21,27 @@ public:
 
         while (peek().has_value())
         {
-            if(std::isalpha(peek().value()))
+            if(_tokens.size() > 0 &&  _tokens.back().type == TokenType::s_doubleQuote)
+            {
+                while (peek().has_value() && peek().value() != '\"')
+                {
+                    buffer.push_back(consume());
+                }
+                _tokens.emplace_back(TokenType::str_lit, buffer);
+                buffer.clear();
+                if(peek().has_value() && peek().value() == '\"')
+                {
+                    consume();
+                    _tokens.emplace_back(TokenType::e_doubleQuote);
+                }
+                else
+                {
+                    std::cerr << "Invalid string, must end with \"";
+                    exit(EXIT_FAILURE);
+                }
+
+            }
+            else if(std::isalpha(peek().value()))
             {
                 buffer.push_back(consume());
                 while (peek().has_value() && std::isalnum(peek().value()))
@@ -35,6 +55,10 @@ public:
                 else if(buffer == "var")
                 {
                     _tokens.emplace_back(TokenType::var);
+                }
+                else if(buffer == "println")
+                {
+                    _tokens.emplace_back(TokenType::println);
                 }
                 else
                 {
@@ -57,14 +81,19 @@ public:
                 _tokens.emplace_back(TokenType::open_paren);
                 consume();
             }
+            else if (peek().value() == ')')
+            {
+                _tokens.emplace_back(TokenType::close_paren);
+                consume();
+            }
             else if(peek().value() == '=')
             {
                 _tokens.emplace_back(TokenType::equalSign);
                 consume();
             }
-            else if (peek().value() == ')')
+            else if(peek().value() == '\"')
             {
-                _tokens.emplace_back(TokenType::close_paren);
+                _tokens.emplace_back(TokenType::s_doubleQuote);
                 consume();
             }
             else if(peek().value() == ';')
@@ -85,17 +114,23 @@ public:
                     }
                     //consume the newline character
                 }
+                //Check: For multiline comment start
                 else if(peek().has_value() && peek().value() == '*')
                 {
-                    consume();
                     while (peek().has_value())
                     {
-                        if(peek().value() != '*' && peek(1).has_value() && peek(1).value() == '/')
+                        if( peek().value() == '*' && peek(1).has_value() && peek(1).value() == '/')
                         {
                             consume();
                             consume();
                             break;
                         }
+                        consume();
+                    }
+                    //Consume the * char
+                    consume();
+                    if(peek().has_value() && peek().value() == '/')
+                    {
                         consume();
                     }
                 }
