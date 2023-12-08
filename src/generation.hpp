@@ -34,7 +34,7 @@ std::string gen_random(const int len) {
 class Generator{
 public:
     inline explicit Generator(Node::Program pgm)
-    : m_program(std::move(pgm))
+    : m_program(std::move(pgm)), strlitCount(0)
     {
     }
 
@@ -51,8 +51,12 @@ public:
         {
             out << "    mov rax, 1\n";
             out << "    mov rdi, 1\n";
-
-            std::string label_name = gen_random(5);
+            std::string label_name;
+            strlitCount++;
+            std::string id = std::to_string(strlitCount);
+            label_name.reserve(6 + id.size());
+            label_name = gen_random(5);
+            label_name.append('i' + id);
             std::string dataStr = std::get<Node::ExprStrLit>(std::get<Node::StmtPrint>(stmt.s_var).expr.e_var).str_lit.val.value();
             AddROString(label_name,dataStr);
 
@@ -98,6 +102,7 @@ private:
    }
 
     const Node::Program m_program;
+    int strlitCount;
     std::vector <std::string> roDataContent;
 };
 #endif//SOUL_GENERATION_HPP
